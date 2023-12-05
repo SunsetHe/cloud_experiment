@@ -1,0 +1,58 @@
+name: CICD Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Run Sorting Script
+        run: python sort.py
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sorted-artifact
+          path: output/sorted.txt
+
+  test:
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: sorted-artifact
+          path: $GITHUB_WORKSPACE
+
+      - name: List files in workspace
+        run: ls -R $GITHUB_WORKSPACE
+  
+
+      - name: Run Testing Script
+        run: python test.py
